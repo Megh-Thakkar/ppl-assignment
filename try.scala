@@ -143,7 +143,7 @@
 
 // }
 
-def poolToList(matrix:List[List[Double]], k:Int) : List[Double] = {
+def poolToList(matrix:List[List[Double]], k:Int, left:Int) : List[Double] = {
 
     def rowToList(row:List[Double], r:Int) : List[Double] = {
         if (row.isEmpty || r<=0) {
@@ -153,10 +153,10 @@ def poolToList(matrix:List[List[Double]], k:Int) : List[Double] = {
         }
     }
     
-    if (matrix.isEmpty) {
+    if (matrix.isEmpty || left<=0) {
         List[Double]();
     } else {
-        rowToList(matrix.head, k) ::: poolToList(matrix.tail, k);
+        rowToList(matrix.head, k) ::: poolToList(matrix.tail, k, left-1);
     }
 }
 
@@ -217,8 +217,8 @@ def singlePooling(poolingFunc:List[Double]=>Double, Image:List[List[Double]], K:
         List[Double]();
     } else {
         // println (Image.isEmpty);
-        // println(poolToList(Image, K));
-        poolingFunc(poolToList(Image, K)) :: singlePooling(poolingFunc, removeKColumns(Image, K), K);
+        // println(poolToList(Image, K, K));
+        poolingFunc(poolToList(Image, K, K)) :: singlePooling(poolingFunc, removeKColumns(Image, K), K);
     }
 }
 
@@ -236,6 +236,14 @@ def singlePooling(poolingFunc:List[Double]=>Double, Image:List[List[Double]], K:
 //     }
 // }
 
+def poolingLayer(poolingFunc:List[Double]=>Double, Image:List[List[Double]], K:Int) : List[List[Double]] = {
+    if (Image.isEmpty) {
+        List[List[Double]]();
+    } else {
+        singlePooling(poolingFunc, Image, K) :: poolingLayer(poolingFunc, removeKRows(Image, K), K);
+    }
+}
+
 val test: List[Double] = List(1,2,3,4,5,6,7,8,9);
 
 val testPool: List[List[Double]] =
@@ -243,6 +251,9 @@ val testPool: List[List[Double]] =
         List(10, 9, 4, 3, 7, 12, 1, 2, 3),
         List(5, 6, 1, 2, 9, 11, 4, 5, 6),
         List(8, 9, 10, 2, 3, 1, 7, 8, 9),
+        List(1, 2, 3, 3, 7, 12, 1, 2, 3),
+        List(6, 5, 4, 2, 9, 11, 4, 5, 6),
+        List(7, 8, 9, 2, 3, 1, 7, 8, 9),
     );
 
-println (singlePooling(poolingFunc, testPool, 3));
+println (poolingLayer(poolingFunc, testPool, 3));

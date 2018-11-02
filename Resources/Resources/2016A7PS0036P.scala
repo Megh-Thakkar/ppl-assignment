@@ -70,7 +70,7 @@ object <STUDENT_ID>{
 
     }
 
-    def poolToList(matrix:List[List[Double]], k:Int) : List[Double] = {
+    def poolToList(matrix:List[List[Double]], k:Int, left:Int) : List[Double] = {
 
         def rowToList(row:List[Double], r:Int) : List[Double] = {
             if (row.isEmpty || r<=0) {
@@ -80,10 +80,10 @@ object <STUDENT_ID>{
             }
         }
         
-        if (matrix.isEmpty) {
+        if (matrix.isEmpty || left<=0) {
             List[Double]();
         } else {
-            rowToList(matrix.head, k) ::: poolToList(matrix.tail, k);
+            rowToList(matrix.head, k) ::: poolToList(matrix.tail, k, left-1);
         }
     }
 
@@ -113,8 +113,16 @@ object <STUDENT_ID>{
             List[Double]();
         } else {
             // println (Image.isEmpty);
-            // println(poolToList(Image, K));
-            poolingFunc(poolToList(Image, K)) :: singlePooling(poolingFunc, removeKColumns(Image, K), K);
+            // println(poolToList(Image, K, K));
+            poolingFunc(poolToList(Image, K, K)) :: singlePooling(poolingFunc, removeKColumns(Image, K), K);
+        }
+    }
+
+    def poolingLayer(poolingFunc:List[Double]=>Double, Image:List[List[Double]], K:Int) : List[List[Double]] = {
+        if (Image.isEmpty) {
+            List[List[Double]]();
+        } else {
+            singlePooling(poolingFunc, Image, K) :: poolingLayer(poolingFunc, removeKRows(Image, K), K);
         }
     }
 }
