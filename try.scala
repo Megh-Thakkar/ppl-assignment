@@ -334,15 +334,15 @@ def normalise(Image:List[List[Double]]) : List[List[Int]] = {
     normaliseHelper(Image, min_v, max_v);
 }
 
-// val testPool: List[List[Double]] =
-//     List(
-//         List(10, 9, 4, 3, 7, 12, 1, 2, 3),
-//         List(5, 6, 1, 2, 9, 11, 4, 5, 6),
-//         List(8, 9, 10, 2, 3, 1, 7, 8, 9),
-//         List(1, 2, 3, 3, 7, 12, 1, 2, 3),
-//         List(6, 5, 4, 2, 9, 11, 4, 5, 6),
-//         List(7, 8, 9, 2, 3, 1, 7, 8, 9),
-//     );
+val testPool: List[List[Double]] =
+    List(
+        List(10, 9, 4, 3, 7, 12, 1, 2, 3),
+        List(5, 6, 1, 2, 9, 11, 4, 5, 6),
+        List(8, 9, 10, 2, 3, 1, 7, 8, 9),
+        List(1, 2, 3, 3, 7, 12, 1, 2, 3),
+        List(6, 5, 4, 2, 9, 11, 4, 5, 6),
+        List(7, 8, 9, 2, 3, 1, 7, 8, 9),
+    );
 
 val testN: List[List[Double]] = 
     List (
@@ -351,7 +351,101 @@ val testN: List[List[Double]] =
         List(0.6, 0.9, 0.45)
     );
 
-println (normalise(testN));
+// println (normalise(testN));
 
+def matrixSum(mat:List[List[Double]]) : Double = {
+        def matrixRowSum(row:List[Double]) : Double = {
+            if (row.isEmpty) 0;
+            else {
+                row.head + matrixRowSum(row.tail);
+            }
+        }
+
+        if (mat.isEmpty) {
+            0;
+        } else {
+            matrixRowSum(mat.head) + matrixSum(mat.tail);
+        }
+    }
+
+// println (matrixSum(Image));
+
+def rowSum(row:List[Double]) : Double = {
+    if (row.isEmpty) 0;
+    else {
+        row.head + rowSum(row.tail);
+    }
+}
+
+def avgPooling(mat:List[Double]) : Double = {
+    rowSum(mat)/mat.length;
+}
+
+def maxPooling(mat:List[Double]) : Double = {
+    findMaxRow(mat);
+}
+
+// println (maxPooling(test));
+
+def scalarAddition(mat:List[List[Double]], bias:Double) : List[List[Double]] = {
+    def rowMultiplication(row:List[Double], bias:Double) : List[Double] = {
+        if (row.isEmpty) {
+            List[Double]();
+        } else {
+            (row.head + bias) :: rowMultiplication(row.tail, bias);
+        }
+    }
+    
+    if (mat.isEmpty || mat.head.isEmpty) {
+        List[List[Double]]();
+    } else {
+        rowMultiplication(mat.head, bias) :: scalarAddition(mat.tail, bias);
+    }
+}
+
+def scalarMultiplication(mat:List[List[Double]], weight:Double) : List[List[Double]] = {
+    def rowMultiplication(row:List[Double], weight:Double) : List[Double] = {
+        if (row.isEmpty) {
+            List[Double]();
+        } else {
+            row.head*weight :: rowMultiplication(row.tail, weight);
+        }
+    }
+
+    if (mat.isEmpty || mat.head.isEmpty) {
+        List[List[Double]]();
+    } else {
+        rowMultiplication(mat.head, weight) :: scalarMultiplication(mat.tail, weight);
+    }
+}
+
+def matrixAddition(mat1:List[List[Double]], mat2:List[List[Double]]) : List[List[Double]] = {
+    def rowAddition(row1:List[Double], row2:List[Double]) : List[Double] = {
+        if (row1.isEmpty || row2.isEmpty) List[Double]();
+        else {
+            (row1.head + row2.head) :: rowAddition(row1.tail, row2.tail);
+        }
+    }
+    if (mat1.isEmpty || mat2.isEmpty || mat1.head.isEmpty || mat2.head.isEmpty) List[List[Double]]();
+    else {
+        rowAddition(mat1.head, mat2.head) :: matrixAddition(mat1.tail, mat2.tail);
+    }
+}
+
+val testN1: List[List[Double]] = 
+    List (
+        List(0.1, 0.4, 0.5),
+        List(0.2, 0.8, 0.1),
+        List(0.6, 0.9, 0.45)
+    );
+
+val testN2: List[List[Double]] = 
+    List (
+        List(0.2, 0.3, 0.4),
+        List(0.2, 0.8, 0.1),
+        List(0.6, 0.9, 0.45)
+    );
+
+println (matrixAddition(testN1, testN2));
 // println (findMax(testPool));
 // println (findMin(testPool));

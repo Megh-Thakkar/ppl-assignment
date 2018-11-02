@@ -126,6 +126,19 @@ object <STUDENT_ID>{
         }
     }
 
+    def mixedLayer(Image:List[List[Double]], Kernel:List[List[Double]], imageSize:List[Int], 
+        kernelSize:List[Int], activationFunc:Double => Double, 
+        poolingFunc:List[Double]=>Double, K:Int) : List[List[Double]] = {
+            poolingLayer(poolingFunc, 
+                        activationLayer(activationFunc, 
+                                        convolute(Image, 
+                                                Kernel, imageSize, kernelSize
+                                    )
+                                ),
+                            K
+                        );
+        }
+
     def max(x:Double, y:Double) : Double = {
         if (x>y) x;
         else y;
@@ -200,5 +213,126 @@ object <STUDENT_ID>{
         val min_v:Double = findMin(Image);
         val max_v:Double = findMax(Image);
         normaliseHelper(Image, min_v, max_v);
+    }
+
+    def ReLuActivation(value:Double) : Double = {
+        max(0, value);
+    }
+
+    def leakyReLuActivation(value:Double) : Double = {
+        if (value > 0) value;
+        else 0.5*x;
+    }
+
+    def rowSum(row:List[Double]) : Double = {
+        if (row.isEmpty) 0;
+        else {
+            row.head + rowSum(row.tail);
+        }
+    }
+
+    def avgPooling(mat:List[Double]) : Double = {
+        rowSum(mat)/mat.length;
+    }
+
+    def maxPooling(mat:List[Double]) : Double = {
+        findMaxRow(mat);
+    }
+
+    def scalarAddition(mat:List[List[Double]], bias:Double) : List[List[Double]] = {
+        def rowMultiplication(row:List[Double], bias:Double) : List[Double] = {
+            if (row.isEmpty) {
+                List[Double]();
+            } else {
+                (row.head + bias) :: rowMultiplication(row.tail, bias);
+            }
+        }
+        
+        if (mat.isEmpty || mat.head.isEmpty) {
+            List[List[Double]]();
+        } else {
+            rowMultiplication(mat.head, bias) :: scalarAddition(mat.tail, bias);
+        }
+    }
+
+    def scalarMultiplication(mat:List[List[Double]], weight:Double) : List[List[Double]] = {
+        def rowMultiplication(row:List[Double], weight:Double) : List[Double] = {
+            if (row.isEmpty) {
+                List[Double]();
+            } else {
+                row.head*weight :: rowMultiplication(row.tail, weight);
+            }
+        }
+
+        if (mat.isEmpty || mat.head.isEmpty) {
+            List[List[Double]]();
+        } else {
+            rowMultiplication(mat.head, weight) :: scalarMultiplication(mat.tail, weight);
+        }
+    }
+
+    def matrixAddition(mat1:List[List[Double]], mat2:List[List[Double]]) : List[List[Double]] = {
+        def rowAddition(row1:List[Double], row2:List[Double]) : List[Double] = {
+            if (row1.isEmpty || row2.isEmpty) List[Double]();
+            else {
+                (row1.head + row2.head) :: rowAddition(row1.tail, row2.tail);
+            }
+        }
+        if (mat1.isEmpty || mat2.isEmpty || mat1.head.isEmpty || mat2.head.isEmpty) List[List[Double]]();
+        else {
+            rowAddition(mat1.head, mat2.head) :: matrixAddition(mat1.tail, mat2.tail);
+        }
+    }
+
+    def assembly(Image:List[List[Double]],
+            imageSize:List[Int],
+            w1:Double,
+            w2:Double,
+            b:Double,
+            Kernel1:List[List[Double]],
+            kernelSize1:List[Int],
+            Kernel2:List[List[Double]],
+            kernelSize2:List[Int],
+            Kernel3:List[List[Double]],
+            kernelSize3:List[Int],
+            Size: Int
+        ) : List[List[Int]] = {
+        
+        val temp_output_1 = mixedLayer(
+            Image, 
+            Kernel1, 
+            imageSize, 
+            kernelSize1, 
+            ReLuActivation,
+            avgPooling, 
+            Size
+        );
+        val temp_output_2 = mixedLayer(
+            Image, 
+            Kernel2, 
+            imageSize, 
+            kernelSize2, 
+            ReLuActivation,
+            avgPooling, 
+            Size
+        );
+
+        val temp_output_3 = scalarAddition(
+            matrixAddition(
+                scalarMultiplication(temp_output_1, w1),
+                scalarMultiplication(temp_output_2, w2)
+            ), 
+            b
+        );
+        val temp_output_4 = mixedLayer(
+            temp_output_3,
+            Kernel3,
+            List(imageSize.head/Size, imageSize.tail.head/Size),
+            kernelSize3,
+            leakyReLuActivation,
+            maxPooling,
+            Size
+        );
+        normalise(temp_output_4);
     }
 }
