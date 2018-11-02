@@ -109,7 +109,7 @@ object <STUDENT_ID>{
     }
 
     def singlePooling(poolingFunc:List[Double]=>Double, Image:List[List[Double]], K:Int) : List[Double] = {
-        if (Image.head.isEmpty) {
+        if (Image.isEmpty || Image.head.isEmpty) {
             List[Double]();
         } else {
             // println (Image.isEmpty);
@@ -124,5 +124,81 @@ object <STUDENT_ID>{
         } else {
             singlePooling(poolingFunc, Image, K) :: poolingLayer(poolingFunc, removeKRows(Image, K), K);
         }
+    }
+
+    def max(x:Double, y:Double) : Double = {
+        if (x>y) x;
+        else y;
+    }
+
+    def min(x:Double, y:Double) : Double = {
+        if (x>y) y;
+        else x;
+    }
+
+    def findMaxRow(list:List[Double]) : Double = {
+        if (list.tail.isEmpty){
+            list.head;
+        } else {
+            max(list.head, findMaxRow(list.tail));
+        }
+    }
+
+    def findMinRow(list:List[Double]) : Double = {
+        if (list.tail.isEmpty){
+            list.head;
+        } else {
+            min(list.head, findMinRow(list.tail));
+        }
+    }
+
+    def maxList(Image:List[List[Double]]) : List[Double] = {
+        if (Image.isEmpty || Image.head.isEmpty) {
+            List[Double]();
+        } else {
+            findMaxRow(Image.head) :: maxList(Image.tail);
+        }
+    }
+
+    def minList(Image:List[List[Double]]) : List[Double] = {
+        if (Image.isEmpty || Image.head.isEmpty) {
+            List[Double]();
+        } else {
+            findMinRow(Image.head) :: minList(Image.tail);
+        }
+    }
+
+    def findMax(Image:List[List[Double]]) : Double = {
+        findMaxRow(maxList(Image));
+    }
+
+    def findMin(Image:List[List[Double]]) : Double = {
+        findMinRow(minList(Image));
+    }
+
+    def normalisedValue(x:Double, min_v:Double, max_v:Double) : Int = {
+        Math.round(((x - min_v)/(max_v - min_v))*255).toInt;
+    }
+
+    def normaliseHelper(Image:List[List[Double]], min_v:Double, max_v:Double) : List[List[Int]] = {
+        def normaliseRow(row:List[Double], min_v:Double, max_v:Double) : List[Int] = {
+            if (row.isEmpty){
+                List[Int]();
+            } else {
+                normalisedValue(row.head, min_v, max_v) :: normaliseRow(row.tail, min_v, max_v);
+            }
+        }
+
+        if (Image.isEmpty || Image.head.isEmpty) {
+            List[List[Int]]();
+        } else {
+            normaliseRow(Image.head, min_v, max_v) :: normaliseHelper(Image.tail, min_v, max_v);
+        }
+    }
+
+    def normalise(Image:List[List[Double]]) : List[List[Int]] = {
+        val min_v:Double = findMin(Image);
+        val max_v:Double = findMax(Image);
+        normaliseHelper(Image, min_v, max_v);
     }
 }

@@ -213,7 +213,7 @@ def poolingFunc(lis1:List[Double]) : Double = {
 }
 
 def singlePooling(poolingFunc:List[Double]=>Double, Image:List[List[Double]], K:Int) : List[Double] = {
-    if (Image.head.isEmpty) {
+    if (Image.isEmpty || Image.head.isEmpty) {
         List[Double]();
     } else {
         // println (Image.isEmpty);
@@ -244,16 +244,114 @@ def poolingLayer(poolingFunc:List[Double]=>Double, Image:List[List[Double]], K:I
     }
 }
 
-val test: List[Double] = List(1,2,3,4,5,6,7,8,9);
+val test: List[Double] = List(1,2,3,4,5,6,7,8,9,6,7,10,1,7,5,3);
 
-val testPool: List[List[Double]] =
-    List(
-        List(10, 9, 4, 3, 7, 12, 1, 2, 3),
-        List(5, 6, 1, 2, 9, 11, 4, 5, 6),
-        List(8, 9, 10, 2, 3, 1, 7, 8, 9),
-        List(1, 2, 3, 3, 7, 12, 1, 2, 3),
-        List(6, 5, 4, 2, 9, 11, 4, 5, 6),
-        List(7, 8, 9, 2, 3, 1, 7, 8, 9),
+// val testPool: List[List[Double]] =
+//     List(
+//         List(10, 9, 4, 3, 7, 12, 1, 2, 3),
+//         List(5, 6, 1, 2, 9, 11, 4, 5, 6),
+//         List(8, 9, 10, 2, 3, 1, 7, 8, 9),
+//         List(1, 2, 3, 3, 7, 12, 1, 2, 3),
+//         List(6, 5, 4, 2, 9, 11, 4, 5, 6),
+//         List(7, 8, 9, 2, 3, 1, 7, 8, 9),
+//     );
+
+// println (poolingLayer(poolingFunc, testPool, 3));
+
+def max(x:Double, y:Double) : Double = {
+    if (x>y) x;
+    else y;
+}
+
+def findMaxRow(list:List[Double]) : Double = {
+    if (list.tail.isEmpty){
+        list.head;
+    } else {
+        max(list.head, findMaxRow(list.tail));
+    }
+}
+
+def min(x:Double, y:Double) : Double = {
+    if (x>y) y;
+    else x;
+}
+
+def findMinRow(list:List[Double]) : Double = {
+    if (list.tail.isEmpty){
+        list.head;
+    } else {
+        min(list.head, findMinRow(list.tail));
+    }
+}
+
+def maxList(Image:List[List[Double]]) : List[Double] = {
+    if (Image.isEmpty || Image.head.isEmpty) {
+        List[Double]();
+    } else {
+        findMaxRow(Image.head) :: maxList(Image.tail);
+    }
+}
+
+def findMax(Image:List[List[Double]]) : Double = {
+    findMaxRow(maxList(Image));
+}
+
+def minList(Image:List[List[Double]]) : List[Double] = {
+    if (Image.isEmpty || Image.head.isEmpty) {
+        List[Double]();
+    } else {
+        findMinRow(Image.head) :: minList(Image.tail);
+    }
+}
+
+def findMin(Image:List[List[Double]]) : Double = {
+    findMinRow(minList(Image));
+}
+
+def normalisedValue(x:Double, min_v:Double, max_v:Double) : Int = {
+    Math.round(((x - min_v)/(max_v - min_v))*255).toInt;
+}
+
+def normaliseHelper(Image:List[List[Double]], min_v:Double, max_v:Double) : List[List[Int]] = {
+    def normaliseRow(row:List[Double], min_v:Double, max_v:Double) : List[Int] = {
+        if (row.isEmpty){
+            List[Int]();
+        } else {
+            normalisedValue(row.head, min_v, max_v) :: normaliseRow(row.tail, min_v, max_v);
+        }
+    }
+
+    if (Image.isEmpty || Image.head.isEmpty) {
+        List[List[Int]]();
+    } else {
+        normaliseRow(Image.head, min_v, max_v) :: normaliseHelper(Image.tail, min_v, max_v);
+    }
+}
+
+def normalise(Image:List[List[Double]]) : List[List[Int]] = {
+    val min_v:Double = findMin(Image);
+    val max_v:Double = findMax(Image);
+    normaliseHelper(Image, min_v, max_v);
+}
+
+// val testPool: List[List[Double]] =
+//     List(
+//         List(10, 9, 4, 3, 7, 12, 1, 2, 3),
+//         List(5, 6, 1, 2, 9, 11, 4, 5, 6),
+//         List(8, 9, 10, 2, 3, 1, 7, 8, 9),
+//         List(1, 2, 3, 3, 7, 12, 1, 2, 3),
+//         List(6, 5, 4, 2, 9, 11, 4, 5, 6),
+//         List(7, 8, 9, 2, 3, 1, 7, 8, 9),
+//     );
+
+val testN: List[List[Double]] = 
+    List (
+        List(0.1, 0.4, 0.5),
+        List(0.2, 0.8, 0.1),
+        List(0.6, 0.9, 0.45)
     );
 
-println (poolingLayer(poolingFunc, testPool, 3));
+println (normalise(testN));
+
+// println (findMax(testPool));
+// println (findMin(testPool));
