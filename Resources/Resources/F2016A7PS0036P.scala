@@ -1,16 +1,20 @@
 package pplAssignment
 
-object <STUDENT_ID>{
-    //Start Coding from here
+object F2016A7PS0036P{
 
-    def listProduct(l1: List[Double], l2: List[Double]): Double = l2 match {
-        case Nil => 0
-        case x::xs => x*l1.head + listProduct(l1.tail, xs)
-    }
-
-    def dotProduct(lis1: List[List[Double]], lis2: List[List[Double]]): Double = lis2 match {
-        case Nil => 0
-        case x::xs => listProduct(lis1.head, x) + dotProduct(lis1.tail, xs)
+    def dotProduct(lis1: List[List[Double]], lis2: List[List[Double]]): Double = {
+        def listProduct(l1: List[Double], l2: List[Double]): Double = {
+            if (l1.isEmpty || l2.isEmpty) {
+                0;
+            } else {
+                (l1.head*l2.head) + listProduct(l1.tail, l2.tail);
+            }
+        }
+        if (lis1.isEmpty || lis2.isEmpty || lis1.head.isEmpty || lis2.head.isEmpty) {
+            0;
+        } else {
+            listProduct(lis1.head, lis2.head) + dotProduct(lis1.tail, lis2.tail);
+        }
     }
 
     def trimColumn(Image:List[List[Double]]) : List[List[Double]] = {
@@ -24,15 +28,10 @@ object <STUDENT_ID>{
     def convolute(Image:List[List[Double]], Kernel:List[List[Double]], imageSize:List[Int], kernelSize:List[Int]) : List[List[Double]] = {
         
         def convoluteRow(Image:List[List[Double]], Kernel:List[List[Double]], imageSize:List[Int], kernelSize:List[Int]) : List[Double] = {
-            // println (Image);
-            // println (imageSize);
             if (imageSize.head < kernelSize.head || imageSize.tail.head < kernelSize.tail.head) {
-                // println ("Empty");
                 List[Double]();
             } else {
                 val trimmed = trimColumn(Image);
-                // println ("###")
-                // println (dotProduct(Image, Kernel));
                 dotProduct(Image, Kernel) :: convoluteRow(trimmed, Kernel, List(imageSize.head, imageSize.tail.head-1), kernelSize);
             }
         }
@@ -43,14 +42,6 @@ object <STUDENT_ID>{
             convoluteRow(Image, Kernel, imageSize, kernelSize) :: convolute(Image.tail, Kernel, List(imageSize.head-1, imageSize.tail.head), kernelSize);
         }
     }
-
-    // def testActivationFunc(inp:Double) : Double = {
-    //     if (inp > 5){
-    //         1.0;
-    //     } else {
-    //         0.0;
-    //     }
-    // }
 
     def activationLayer(activationFunc:Double => Double, Image:List[List[Double]]) : List[List[Double]] = {
 
@@ -112,9 +103,19 @@ object <STUDENT_ID>{
         if (Image.isEmpty || Image.head.isEmpty) {
             List[Double]();
         } else {
-            // println (Image.isEmpty);
-            // println(poolToList(Image, K, K));
             poolingFunc(poolToList(Image, K, K)) :: singlePooling(poolingFunc, removeKColumns(Image, K), K);
+        }
+    }
+
+    def removeKRows(matrix:List[List[Double]], k:Int) : List[List[Double]] = {
+        if (matrix.isEmpty) {
+            List[List[Double]]();
+        } else {
+            if (k<=0) {
+                matrix.head :: removeKRows(matrix.tail, k-1);
+            } else {
+                removeKRows(matrix.tail, k-1);
+            }
         }
     }
 
@@ -221,7 +222,7 @@ object <STUDENT_ID>{
 
     def leakyReLuActivation(value:Double) : Double = {
         if (value > 0) value;
-        else 0.5*x;
+        else 0.5*value;
     }
 
     def rowSum(row:List[Double]) : Double = {
@@ -231,8 +232,16 @@ object <STUDENT_ID>{
         }
     }
 
+    def findLength(mat:List[Double]) : Double = {
+        if (mat.isEmpty) {
+            0;
+        } else {
+            1 + findLength(mat.tail);
+        }
+    }
+
     def avgPooling(mat:List[Double]) : Double = {
-        rowSum(mat)/mat.length;
+        rowSum(mat)/findLength(mat);
     }
 
     def maxPooling(mat:List[Double]) : Double = {
@@ -324,10 +333,11 @@ object <STUDENT_ID>{
             ), 
             b
         );
+        val new_list : List[Int] = List(((imageSize.head-kernelSize1.head+1)/Size), ((imageSize.tail.head-kernelSize2.tail.head+1)/Size));
         val temp_output_4 = mixedLayer(
             temp_output_3,
             Kernel3,
-            List(imageSize.head/Size, imageSize.tail.head/Size),
+            new_list,
             kernelSize3,
             leakyReLuActivation,
             maxPooling,

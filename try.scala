@@ -446,6 +446,16 @@ val testN2: List[List[Double]] =
         List(0.6, 0.9, 0.45)
     );
 
-println (matrixAddition(testN1, testN2));
+// println (matrixAddition(testN1, testN2));
 // println (findMax(testPool));
 // println (findMin(testPool));
+
+def findLength(mat:List[Double]) : Double = {
+    if (mat.isEmpty) {
+        0;
+    } else {
+        1 + findLength(mat.tail);
+    }
+}
+
+println (findLength(test));
